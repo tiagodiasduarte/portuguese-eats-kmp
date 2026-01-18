@@ -1,0 +1,25 @@
+name: Daily Android Build for Firebase
+
+on:
+  schedule:
+    - cron: '0 9 * * *'   # 09:00 UTC
+
+jobs:
+  android-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+      - run: ./gradlew :composeApp:bundleRelease
+      - name: Upload Firebase
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          token: ${{ secrets.FIREBASE_TOKEN }}
+          groups: beta-testers
+          file: composeApp/build/outputs/bundle/release/app-release.aab

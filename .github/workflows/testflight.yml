@@ -1,0 +1,15 @@
+name: Daily iOS Build for TestFlight
+
+on:
+  schedule:
+    - cron: '0 10 * * *'  # 10:00 UTC
+
+jobs:
+  ios-build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo gem install cocoapods fastlane
+      - run: ./gradlew :shared:assembleXCFramework
+      - run: cd iosApp && pod install
+      - run: cd iosApp && fastlane beta
