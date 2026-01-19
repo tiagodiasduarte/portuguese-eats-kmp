@@ -45,6 +45,9 @@ jobs:
       - name: Build Android Bundle
         run: ./gradlew :composeApp:bundleRelease
 
+      - name: List bundle outputs
+        run: ls -R composeApp/build/outputs/bundle/release
+        
       # -------- FIREBASE --------
       - name: Upload to Firebase
         uses: wzieba/Firebase-Distribution-Github-Action@v1
