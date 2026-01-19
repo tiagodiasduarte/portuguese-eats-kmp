@@ -3,23 +3,51 @@ name: Daily Android Build for Firebase
 on:
   schedule:
     - cron: '0 9 * * *'   # 09:00 UTC
+  workflow_dispatch:
 
 jobs:
   android-build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
+
+      # -------- VERSIONING --------
+      - name: Bump versionCode
+        run: |
+          FILE=composeApp/build.gradle.kts
+          CODE=$(grep "versionCode" $FILE | sed 's/[^0-9]*//g')
+          NEW=$((CODE+1))
+          sed -i "s/versionCode = $CODE/versionCode = $NEW/" $FILE
+          echo "New versionCode: $NEW"
+
+      - name: Set versionName with date and time
+        run: |
+          FILE=composeApp/build.gradle.kts
+          DATETIME=$(date +%Y%m%d-%H%M)
+          sed -i "s/versionName = \".*\"/versionName = \"0.1.0-$DATETIME\"/" $FILE
+          echo "versionName set to 0.1.0-$DATETIME"
+
+      # -------- KEYSTORE --------
       - name: Decode Keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
-      - run: ./gradlew :composeApp:bundleRelease
-      - name: Upload Firebase
+
+      # -------- BUILD --------
+      - name: Build Android Bundle
+        run: ./gradlew :composeApp:bundleRelease
+
+      # -------- FIREBASE --------
+      - name: Upload to Firebase
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           token: ${{ secrets.FIREBASE_TOKEN }}
           groups: beta-testers
-          file: composeApp/build/outputs/bundle/release/app-release.aab
+          file: composeApp/build/outputs/bundle/release/composeApp-release.aab
