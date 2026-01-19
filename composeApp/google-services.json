@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "869670904876",
+    "project_id": "portuguese-eats-kmp",
+    "storage_bucket": "portuguese-eats-kmp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:869670904876:android:598287dbb6a48b23c81d89",
+        "android_client_info": {
+          "package_name": "pt.portugueseeats.kmp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpunXlVJr97FDXBq31RUf5IV99-P9UTfI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
