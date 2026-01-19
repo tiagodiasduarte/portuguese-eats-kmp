@@ -5,7 +5,7 @@ on:
     - cron: '0 9 * * *'   # 09:00 UTC
   workflow_dispatch:
   push:
-    branches: [ firebase-distribution-action ]
+    branches: [feature/firebase-distribution-action]
 
 jobs:
   android-build:
