@@ -1,11 +1,11 @@
-name: Daily Android Build for Firebase
+name: Daily Android Build APK for Firebase
 
 on:
   schedule:
     - cron: '0 9 * * *'   # 09:00 UTC
   workflow_dispatch:
   push:
-    branches: [feature/firebase-distribution-action]
+    branches: [ feature/firebase-distribution-action ]
 
 jobs:
   android-build:
@@ -39,6 +39,14 @@ jobs:
           sed -i "s/versionName = \".*\"/versionName = \"0.1.0-$DATETIME\"/" $FILE
           echo "versionName set to 0.1.0-$DATETIME"
 
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add composeApp/build.gradle.kts
+          git commit -m "chore: daily version bump" || echo "No changes"
+          git push
+
       # ----------------- KEYSTORE -----------------
       - name: Decode Keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
@@ -51,24 +59,24 @@ jobs:
           fi
           ls -lh keystore.jks
 
-      # ----------------- BUILD -----------------
-      - name: Build Android Bundle
-        run: ./gradlew :composeApp:bundleRelease
+      # ----------------- BUILD APK -----------------
+      - name: Build Release APK
+        run: ./gradlew :composeApp:assembleRelease
 
-      - name: Check AAB exists
+      - name: Check APK exists
         run: |
-          AAB_PATH=$(find composeApp/build/outputs -name "*.aab")
-          echo "Found AAB at $AAB_PATH"
-          if [ ! -f "$AAB_PATH" ]; then
-            echo "ERROR: AAB not found!"
+          APK_PATH=$(find composeApp/build/outputs -name "*release.apk")
+          echo "Found APK at $APK_PATH"
+          if [ ! -f "$APK_PATH" ]; then
+            echo "ERROR: APK not found!"
             exit 1
           fi
 
-      # ----------------- FIREBASE -----------------
-      - name: Upload to Firebase
+      # ----------------- FIREBASE UPLOAD -----------------
+      - name: Upload APK to Firebase
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           token: ${{ secrets.FIREBASE_TOKEN }}
           groups: beta-testers
-          file: ${{ steps.check-aab.outputs.AAB_PATH || 'composeApp/build/outputs/bundle/release/composeApp-release.aab' }}
+          file: ${{ steps.check-apk.outputs.APK_PATH || 'composeApp/build/outputs/apk/release/composeApp-release.apk' }}
