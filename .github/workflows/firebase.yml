@@ -12,16 +12,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ----------------- CHECKOUT -----------------
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ----------------- JAVA -----------------
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
-      # -------- VERSIONING --------
+      # ----------------- VERSIONING -----------------
       - name: Bump versionCode
         run: |
           FILE=composeApp/build.gradle.kts
@@ -37,22 +39,44 @@ jobs:
           sed -i "s/versionName = \".*\"/versionName = \"0.1.0-$DATETIME\"/" $FILE
           echo "versionName set to 0.1.0-$DATETIME"
 
-      # -------- KEYSTORE --------
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add composeApp/build.gradle.kts
+          git commit -m "chore: daily version bump" || echo "No changes"
+          git push
+
+      # ----------------- KEYSTORE -----------------
       - name: Decode Keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
 
-      # -------- BUILD --------
+      - name: Check Keystore exists
+        run: |
+          if [ ! -f keystore.jks ]; then
+            echo "Keystore not found!"
+            exit 1
+          fi
+          ls -lh keystore.jks
+
+      # ----------------- BUILD -----------------
       - name: Build Android Bundle
         run: ./gradlew :composeApp:bundleRelease
 
-      - name: List bundle outputs
-        run: ls -R composeApp/build/outputs/bundle/release
-        
-      # -------- FIREBASE --------
+      - name: Check AAB exists
+        run: |
+          AAB_PATH=$(find composeApp/build/outputs -name "*.aab")
+          echo "Found AAB at $AAB_PATH"
+          if [ ! -f "$AAB_PATH" ]; then
+            echo "ERROR: AAB not found!"
+            exit 1
+          fi
+
+      # ----------------- FIREBASE -----------------
       - name: Upload to Firebase
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           token: ${{ secrets.FIREBASE_TOKEN }}
           groups: beta-testers
-          file: composeApp/build/outputs/bundle/release/composeApp-release.aab
+          file: ${{ steps.check-aab.outputs.AAB_PATH || 'composeApp/build/outputs/bundle/release/composeApp-release.aab' }}
