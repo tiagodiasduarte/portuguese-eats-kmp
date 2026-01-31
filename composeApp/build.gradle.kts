@@ -57,7 +57,7 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toInt() ?: 1
-        versionName = "0.1.0.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}"
+        versionName = "0.1.0-${System.getenv("BUILD_NAME") ?: "local"}"
     }
     packaging {
         resources {

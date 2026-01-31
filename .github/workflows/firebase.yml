@@ -16,50 +16,42 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ----------------- JAVA -----------------
+      # ----------------- SETUP JAVA -----------------
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
 
-      # ----------------- VERSIONING -----------------
-      - name: Bump versionCode
-        run: |
-          FILE=composeApp/build.gradle.kts
-          CODE=$(grep "versionCode" $FILE | sed 's/[^0-9]*//g')
-          NEW=$((CODE+1))
-          sed -i "s/versionCode = $CODE/versionCode = $NEW/" $FILE
-          echo "New versionCode: $NEW"
+      # ----------------- SET BUILD NAME -----------------
+      - name: Set BUILD_NAME
+        run: echo "BUILD_NAME=$(date +%Y%m%d-%H%M)" >> $GITHUB_ENV
 
-      - name: Set versionName with date and time
-        run: |
-          FILE=composeApp/build.gradle.kts
-          DATETIME=$(date +%Y%m%d%H%M)
-          sed -i "s/versionName = \".*\"/versionName = \"0.1.0-$DATETIME\"/" $FILE
-          echo "versionName set to 0.1.0-$DATETIME"
-
-      # ----------------- KEYSTORE -----------------
+      # ----------------- DECODE KEYSTORE -----------------
       - name: Decode Keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > composeApp/keystore.jks
 
       - name: Check Keystore exists
         run: |
-          if [ ! -f keystore.jks ]; then
+          if [ ! -f composeApp/keystore.jks ]; then
             echo "Keystore not found!"
             exit 1
           fi
-          ls -lh keystore.jks
+          ls -lh composeApp/keystore.jks
 
-      # ----------------- BUILD -----------------
+      # ----------------- BUILD AAB -----------------
       - name: Build AAB
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          BUILD_NAME: ${{ env.BUILD_NAME }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
         run: ./gradlew :composeApp:bundleRelease
 
+      # ----------------- CHECK AAB -----------------
       - name: Check AAB exists
+        id: check-aab
         run: |
           AAB_PATH=$(find composeApp/build/outputs -name "*.aab")
           echo "Found AAB at $AAB_PATH"
@@ -67,12 +59,13 @@ jobs:
             echo "ERROR: AAB not found!"
             exit 1
           fi
+          echo "AAB_PATH=$AAB_PATH" >> $GITHUB_OUTPUT
 
-      # ----------------- FIREBASE -----------------
+      # ----------------- UPLOAD TO FIREBASE -----------------
       - name: Upload to Firebase
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           token: ${{ secrets.FIREBASE_TOKEN }}
-          groups: beta-testers
-          file: ${{ steps.check-aab.outputs.AAB_PATH || 'composeApp/build/outputs/bundle/release/composeApp-release.aab' }}
+          groups: alpha-testers
+          file: ${{ steps.check-aab.outputs.AAB_PATH }}
