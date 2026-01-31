@@ -52,8 +52,12 @@ jobs:
           ls -lh keystore.jks
 
       # ----------------- BUILD -----------------
-      - name: Build Android Bundle
-        run: ./gradlew :composeApp:bundleRelease
+      - name: Build AAB
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: ./gradlew :androidApp:bundleRelease
 
       - name: Check AAB exists
         run: |

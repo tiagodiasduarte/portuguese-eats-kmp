@@ -68,9 +68,19 @@ android {
             isMinifyEnabled = false
         }
     }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("portuguese-eats-release-key2.jks")
+            storePassword = System.getenv("STORE_PASSWORD")
+            keyAlias = System.getenv("KEY_ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD")
+        }
     }
 }
 
