@@ -51,12 +51,13 @@ android {
     namespace = "pt.portugueseeats.kmp"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+
     defaultConfig {
         applicationId = "pt.portugueseeats.kmp"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 4
-        versionName = "0.1.0"
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toInt() ?: 1
+        versionName = "0.1.0.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}"
     }
     packaging {
         resources {
@@ -73,7 +74,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
-    
+
 
     signingConfigs {
         create("release") {

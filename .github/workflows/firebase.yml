@@ -35,7 +35,7 @@ jobs:
       - name: Set versionName with date and time
         run: |
           FILE=composeApp/build.gradle.kts
-          DATETIME=$(date +%Y%m%d-%H%M)
+          DATETIME=$(date +%Y%m%d%H%M)
           sed -i "s/versionName = \".*\"/versionName = \"0.1.0-$DATETIME\"/" $FILE
           echo "versionName set to 0.1.0-$DATETIME"
 
