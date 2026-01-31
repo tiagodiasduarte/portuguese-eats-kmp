@@ -57,7 +57,7 @@ jobs:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        run: ./gradlew :androidApp:bundleRelease
+        run: ./gradlew :composeApp:bundleRelease
 
       - name: Check AAB exists
         run: |
