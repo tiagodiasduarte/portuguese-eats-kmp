@@ -2,11 +2,8 @@ name: Daily Android Build for Firebase
 
 on:
   schedule:
-    - cron: '0 9 * * *'   # 09:00 UTC
+    - cron: '0 23 * * *'   # 09:00 UTC
   workflow_dispatch:
-  push:
-    branches: [feature/setup-firebase-distribution-action]
-
 jobs:
   android-build:
     runs-on: ubuntu-latest
@@ -69,3 +66,4 @@ jobs:
           token: ${{ secrets.FIREBASE_TOKEN }}
           groups: alpha-testers
           file: ${{ steps.check-aab.outputs.AAB_PATH }}
+          releaseNotes: "Build ${{ github.run_number }} - commit ${{ env.COMMIT_HASH }}"
