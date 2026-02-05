@@ -1,0 +1,14 @@
+package pt.portugueseeats.kmp.domain.error
+
+sealed class ErrorEntity {
+    sealed class Network : ErrorEntity() {
+        object ACCESS_DENIED : Network()
+        object NOT_FOUND : Network()
+        object TIMEOUT : Network()
+        object INTERNAL_SERVER_ERROR : Network()
+        object SERVER_UNAVAILABLE : Network()
+        object UNKNOWN : Network()
+    }
+
+    object Unknown : ErrorEntity()
+}
